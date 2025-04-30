@@ -480,44 +480,52 @@ document.addEventListener('DOMContentLoaded', () => {
      * 啟動自動滾動
      * 實現平滑的上下滾動效果
      */
+    // function startAutoScroll() {
+    //     // 如果已經有滾動間隔，先清除它
+    //     stopAutoScroll();
+        
+    //     // 初始化滾動狀態
+    //     STATE.scrollPosition = 0;
+    //     STATE.scrollDirection = 1;
+    //     STATE.isPaused = false;
+    //     scrollableArea.scrollTop = 0;
+        
+    //     STATE.scrollInterval = setInterval(() => {
+    //         if (STATE.isPaused) return;
+            
+    //         // 計算滾動範圍 - 添加額外空間確保滾動到最後一首歌
+    //         const songListHeight = songList.scrollHeight + CONFIG.extraScrollSpace;
+    //         const visibleAreaHeight = scrollableArea.clientHeight;
+    //         const maxScroll = Math.max(0, songListHeight - visibleAreaHeight);
+            
+    //         // 內容不足以滾動時停止
+    //         if (maxScroll <= 0) {
+    //             stopAutoScroll();
+    //             return;
+    //         }
+            
+    //         // 更新滾動位置
+    //         STATE.scrollPosition += STATE.scrollDirection * CONFIG.scrollSpeed;
+            
+    //         // 檢查邊界並處理方向變換
+    //         handleScrollBoundaries(maxScroll);
+            
+    //         // 應用滾動位置
+    //         scrollableArea.scrollTop = STATE.scrollPosition;
+            
+    //         // 每次滾動更新後檢查裝飾元素位置
+    //         if (STATE.scrollPosition % 50 === 0) { // 每滾動50像素更新一次
+    //             updateDecorationPosition();
+    //         }
+    //     }, CONFIG.scrollInterval);
+    // }
+
     function startAutoScroll() {
-        // 如果已經有滾動間隔，先清除它
-        stopAutoScroll();
-        
-        // 初始化滾動狀態
-        STATE.scrollPosition = 0;
-        STATE.scrollDirection = 1;
-        STATE.isPaused = false;
-        scrollableArea.scrollTop = 0;
-        
-        STATE.scrollInterval = setInterval(() => {
-            if (STATE.isPaused) return;
-            
-            // 計算滾動範圍 - 添加額外空間確保滾動到最後一首歌
-            const songListHeight = songList.scrollHeight + CONFIG.extraScrollSpace;
-            const visibleAreaHeight = scrollableArea.clientHeight;
-            const maxScroll = Math.max(0, songListHeight - visibleAreaHeight);
-            
-            // 內容不足以滾動時停止
-            if (maxScroll <= 0) {
-                stopAutoScroll();
-                return;
-            }
-            
-            // 更新滾動位置
-            STATE.scrollPosition += STATE.scrollDirection * CONFIG.scrollSpeed;
-            
-            // 檢查邊界並處理方向變換
-            handleScrollBoundaries(maxScroll);
-            
-            // 應用滾動位置
-            scrollableArea.scrollTop = STATE.scrollPosition;
-            
-            // 每次滾動更新後檢查裝飾元素位置
-            if (STATE.scrollPosition % 50 === 0) { // 每滾動50像素更新一次
-                updateDecorationPosition();
-            }
-        }, CONFIG.scrollInterval);
+        console.log("原始滾動函數被調用，但已被新代碼取代");
+        // 此函數被scroll-fix.js替代
+        if (window.debugScroll && typeof window.debugScroll.start === 'function') {
+            window.debugScroll.start();
+        }
     }
     
     /**
