@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 配置參數
     const CONFIG = {
-        scrollSpeed: 1,       // 滾動速度 (數值越小越慢)
-        scrollPauseTime: 1000,  // 滾動到頂部或底部時暫停的時間(毫秒)
+        scrollSpeed: 0.5,       // 滾動速度 (數值越小越慢) - 減慢速度以確保在 GitHub Pages 上也能平滑滾動
+        scrollPauseTime: 2000,  // 滾動到頂部或底部時暫停的時間(毫秒) - 增加暫停時間
         updateInterval: 500,    // 輪詢檢查更新的間隔(毫秒)
-        scrollInterval: 50,     // 滾動更新頻率(毫秒)
+        scrollInterval: 16,     // 滾動更新頻率(毫秒) - 使用更精細的 requestAnimationFrame 節奏
         currentSongDefaultHeight: 86, // 現正演唱歌曲的預設高度
         extraSpaceBuffer: 30,   // 額外緩衝空間
         scrollVisibilityOffset: 180,  // 檢查歌曲可見性的偏移量 - 增加到180px更敏感地檢測需要滾動的情況
@@ -32,19 +32,23 @@ document.addEventListener('DOMContentLoaded', () => {
         naturalModeBottomPadding: 40, // 自然模式下的底部內縮空間
         extraScrollSpace: 20,   // 確保完整滾動所有內容的額外空間
         bottomScrollBuffer: 5,  // 滾動到底部時的額外緩衝距離 - 減少到5px讓底部空間更緊湊
-        onlyCurrentSongTopMargin: 40 // 情況E: 僅有現正演唱時歌曲的上移距離
+        onlyCurrentSongTopMargin: 40, // 情況E: 僅有現正演唱時歌曲的上移距離
+        easeInOutFactor: 0.05   // 滾動漸變因子 - 添加用於平滑漸變的參數
     };
 
     // 狀態管理
     const STATE = {
         scrollDirection: 1,     // 1 = 向下滾動, -1 = 向上滾動
         scrollPosition: 0,      // 當前滾動位置
+        targetScrollPosition: 0, // 目標滾動位置 - 新增以實現平滑滾動
         scrollInterval: null,   // 滾動的計時器
         isPaused: false,        // 是否暫停滾動
         lastSungSongs: '',      // 上一次的歌單
         lastCurrentSong: '',    // 上一次的現正演唱歌曲
         displayMode: 'natural', // 'natural' 或 'fixed' 或 'empty' 或 'only-current'
-        resizeTimeout: null     // 用於處理 resize 事件的 debounce
+        resizeTimeout: null,    // 用於處理 resize 事件的 debounce
+        lastScrollTime: 0,      // 記錄上次滾動時間
+        animationFrameId: null  // 用於 requestAnimationFrame
     };
 
     /**
@@ -478,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * 啟動自動滾動
-     * 實現平滑的上下滾動效果
+     * 使用 requestAnimationFrame 和漸變效果實現平滑滾動
      */
     function startAutoScroll() {
         // 如果已經有滾動間隔，先清除它
@@ -486,38 +490,59 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 初始化滾動狀態
         STATE.scrollPosition = 0;
+        STATE.targetScrollPosition = 0;
         STATE.scrollDirection = 1;
         STATE.isPaused = false;
         scrollableArea.scrollTop = 0;
+        STATE.lastScrollTime = performance.now();
         
-        STATE.scrollInterval = setInterval(() => {
-            if (STATE.isPaused) return;
+        // 使用 requestAnimationFrame 代替 setInterval 可以獲得更平滑的動畫效果
+        function animateScroll(timestamp) {
+            const now = timestamp || performance.now();
+            const deltaTime = now - STATE.lastScrollTime;
             
-            // 計算滾動範圍 - 添加額外空間確保滾動到最後一首歌
-            const songListHeight = songList.scrollHeight + CONFIG.extraScrollSpace;
-            const visibleAreaHeight = scrollableArea.clientHeight;
-            const maxScroll = Math.max(0, songListHeight - visibleAreaHeight);
-            
-            // 內容不足以滾動時停止
-            if (maxScroll <= 0) {
-                stopAutoScroll();
-                return;
+            // 根據瀏覽器刷新率調整滾動速度
+            if (deltaTime >= 1000 / 60) { // 以 60fps 為基準
+                STATE.lastScrollTime = now;
+                
+                if (!STATE.isPaused) {
+                    // 計算滾動範圍
+                    const songListHeight = songList.scrollHeight + CONFIG.extraScrollSpace;
+                    const visibleAreaHeight = scrollableArea.clientHeight;
+                    const maxScroll = Math.max(0, songListHeight - visibleAreaHeight);
+                    
+                    // 內容不足以滾動時停止
+                    if (maxScroll <= 0) {
+                        stopAutoScroll();
+                        return;
+                    }
+                    
+                    // 更新目標滾動位置
+                    STATE.targetScrollPosition += STATE.scrollDirection * (CONFIG.scrollSpeed * deltaTime / 16);
+                    
+                    // 檢查邊界並處理方向變換
+                    handleScrollBoundaries(maxScroll);
+                    
+                    // 平滑滾動：使用漸變效果計算實際滾動位置
+                    const diff = STATE.targetScrollPosition - STATE.scrollPosition;
+                    STATE.scrollPosition += diff * CONFIG.easeInOutFactor;
+                    
+                    // 應用滾動位置
+                    scrollableArea.scrollTop = STATE.scrollPosition;
+                    
+                    // 每次滾動更新後檢查裝飾元素位置（降低頻率以提高性能）
+                    if (Math.floor(STATE.scrollPosition) % 20 === 0) {
+                        updateDecorationPosition();
+                    }
+                }
             }
             
-            // 更新滾動位置
-            STATE.scrollPosition += STATE.scrollDirection * CONFIG.scrollSpeed;
-            
-            // 檢查邊界並處理方向變換
-            handleScrollBoundaries(maxScroll);
-            
-            // 應用滾動位置
-            scrollableArea.scrollTop = STATE.scrollPosition;
-            
-            // 每次滾動更新後檢查裝飾元素位置
-            if (STATE.scrollPosition % 50 === 0) { // 每滾動50像素更新一次
-                updateDecorationPosition();
-            }
-        }, CONFIG.scrollInterval);
+            // 繼續動畫循環
+            STATE.animationFrameId = requestAnimationFrame(animateScroll);
+        }
+        
+        // 啟動動畫循環
+        STATE.animationFrameId = requestAnimationFrame(animateScroll);
     }
     
     /**
@@ -525,23 +550,23 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {number} maxScroll - 最大滾動位置
      */
     function handleScrollBoundaries(maxScroll) {
-        if (STATE.scrollPosition >= maxScroll + CONFIG.bottomScrollBuffer) {
+        if (STATE.targetScrollPosition >= maxScroll + CONFIG.bottomScrollBuffer) {
             // 到達底部，暫停後向上滾動
             if (!STATE.isPaused) {
                 STATE.isPaused = true;
                 // 確保停在真正的底部，但減少額外緩衝讓底部空間更緊湊
-                STATE.scrollPosition = maxScroll + CONFIG.bottomScrollBuffer;
+                STATE.targetScrollPosition = maxScroll + CONFIG.bottomScrollBuffer;
                 
                 setTimeout(() => {
                     STATE.scrollDirection = -1;
                     STATE.isPaused = false;
                 }, CONFIG.scrollPauseTime);
             }
-        } else if (STATE.scrollPosition <= 0) {
+        } else if (STATE.targetScrollPosition <= 0) {
             // 到達頂部，暫停後向下滾動
             if (!STATE.isPaused) {
                 STATE.isPaused = true;
-                STATE.scrollPosition = 0;
+                STATE.targetScrollPosition = 0;
                 
                 setTimeout(() => {
                     STATE.scrollDirection = 1;
@@ -555,11 +580,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * 停止自動滾動
      */
     function stopAutoScroll() {
-        if (STATE.scrollInterval) {
-            clearInterval(STATE.scrollInterval);
-            STATE.scrollInterval = null;
+        if (STATE.animationFrameId) {
+            cancelAnimationFrame(STATE.animationFrameId);
+            STATE.animationFrameId = null;
         }
         scrollableArea.scrollTop = 0;
+        STATE.scrollPosition = 0;
+        STATE.targetScrollPosition = 0;
     }
 
     /**
@@ -580,6 +607,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 250);
     }
 
+    /**
+     * 手動觸發重新計算
+     * 在某些情況下（如頁面從背景切回前台）可能需要強制重新計算
+     */
+    function forceRecalculate() {
+        stopAutoScroll();
+        setTimeout(() => {
+            adjustDisplayMode();
+            updateDecorationPosition();
+        }, 100);
+    }
+
     // 事件監聽
     function setupEventListeners() {
         // 監聽 storage 事件，當其他頁面修改 localStorage 時接收更新
@@ -592,6 +631,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // 監聽窗口大小變化
         window.addEventListener('resize', handleResize);
 
+        // 監聽頁面可見性變化，從背景切回前台時重新計算
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                forceRecalculate();
+            }
+        });
+
         // 監聽自定義的 songlistupdate 事件
         window.addEventListener('songlistupdate', updateDisplay);
         
@@ -600,6 +646,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // 使用 requestAnimationFrame 優化性能
             requestAnimationFrame(updateDecorationPosition);
         });
+        
+        // 新增：監聽頁面焦點變化，防止切換回頁面後滾動停止
+        window.addEventListener('focus', forceRecalculate);
     }
 
     // 初始化
