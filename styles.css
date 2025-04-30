@@ -6,7 +6,7 @@
     src: url('GENJYUUGOTHIC-HEAVY.TTF') format('truetype');
     font-weight: normal;
     font-style: normal;
-    font-display: swap; /* 控制字型載入行為 */
+    font-display: swap;
   }
 
 body {
@@ -70,27 +70,27 @@ header {
     background: linear-gradient(to bottom, rgba(217,119,91,0.44), rgba(255,193,176,0.44));
     border: 6px solid #fce9c7;
     border-radius: 40px;
-    position: relative; /* 確保正確的定位上下文 */
-    overflow: hidden; /* 防止現正演唱歌曲溢出邊框 */
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: height 0.3s ease, max-height 0.3s ease, opacity 0.3s ease; /* 平滑過渡高度和透明度變化 */
+    transition: height 0.3s ease, max-height 0.3s ease, opacity 0.3s ease;
 }
 
-/* 自然模式（歌曲較少）的樣式 */
+/* 自然模式 */
 .list-frame.natural-mode {
-    height: auto !important; /* 確保高度自適應內容 */
+    height: auto !important; 
 }
 
-/* 僅有現正演唱歌曲的模式 - 隱藏框架 */
+/* 隱藏框架 */
 .list-frame.only-current-mode {
     display: none !important;
 }
 
-/* 空狀態模式 - 框架保持但特別樣式 */
+/* 空狀態 */
 .list-frame.empty-mode {
-    min-height: 120px; /* 減少空狀態下的最小高度 */
-    background: linear-gradient(to bottom, rgba(217,119,91,0.25), rgba(255,193,176,0.25)); /* 降低透明度 */
+    min-height: 120px; 
+    background: linear-gradient(to bottom, rgba(217,119,91,0.25), rgba(255,193,176,0.25)); 
 }
 
 .list-frame::before {
@@ -129,7 +129,7 @@ header {
     -ms-overflow-style: none;
     scroll-behavior: smooth;
     box-sizing: border-box;
-    transition: height 0.3s ease, max-height 0.3s ease; /* 平滑過渡高度變化 */
+    transition: height 0.3s ease, max-height 0.3s ease; 
 }
 
 .scrollable-area::-webkit-scrollbar {
@@ -141,7 +141,6 @@ header {
 .song-list {
     position: relative;
     transition: padding-bottom 0.3s ease;
-    /* 確保歌單元素不會遮罩底部的現正演唱歌曲 */
     overflow: visible;
 }
 
@@ -202,7 +201,7 @@ header {
 }
 
 .current-song {
-    position: relative; /* 確保有正確的定位上下文 */
+    position: relative;
     padding-bottom: 10px;
     padding-top: 10px;
     display: flex;
@@ -217,19 +216,19 @@ header {
     transition: all 0.3s ease;
 }
 
-/* 自然模式下的現正演唱歌曲 */
+/* 自然模式 現正演唱*/
 .natural-mode .current-song {
-    margin-top: 10px; /* 與已唱過歌曲保持一定距離 */
+    margin-top: 10px;
 }
 
-/* 情況E：僅有現正演唱，沒有已唱過的曲目 - 現正演唱歌曲上移40px */
+/* 僅有現正演唱 */
 .empty-mode .current-song {
-    margin-top: -40px; /* 向上移動 */
+    margin-top: -40px;
 }
 
-/* 情況F：無現正演唱，也沒有已唱過的曲目 - 隱藏框架 */
+/* 隱藏框架*/
 .only-current-mode {
-    display: none !important; /* 確保完全隱藏 */
+    display: none !important;
 }
 
 .current-song .song-number {
@@ -264,7 +263,6 @@ header {
     width: 60px;
 }
 
-/* 固定在底部的樣式 - 優化底部空間 */
 .current-song.fixed {
     position: absolute;
     bottom: 8px;
@@ -275,17 +273,16 @@ header {
     animation: fadeIn 0.3s ease-in-out;
 }
 
-/* 情況B：無現正演唱、歌單長於顯示範圍時，底部預留更多空間 */
+/* 無現正演唱、歌單長 */
 .fixed-mode .scrollable-area {
-    padding-bottom: 20px; /* 增加底部填充 */
+    padding-bottom: 20px;
 }
 
-/* 情況D：有現正演唱、歌單長於顯示範圍時，減少底部多餘空間 */
+/* 有現正演唱、歌單長 */
 .fixed-mode .song-list {
-    padding-bottom: 5px; /* 減小底部間距 */
+    padding-bottom: 5px;
 }
 
-/* ECG SVG 相關樣式 */
 .ecg-container {
     position: relative;
     width: 100%;
@@ -298,14 +295,12 @@ header {
     transition: all 0.3s ease;
 }
 
-/* 當沒有現正演唱歌曲時隱藏ECG */
 .ecg-container:not(.ecg-visible) {
     height: 0;
     opacity: 0;
     overflow: hidden;
 }
 
-/* 確保ECG SVG填滿容器 */
 #ECG {
     width: 100%;
     height: auto;
@@ -313,20 +308,17 @@ header {
     right: 0px;
 }
 
-/* 固定模式下 ECG 的特殊調整 */
 .fixed-mode .ecg-container {
     position: absolute;
-    bottom: 110px; /* 調整位置在固定的現正演唱歌曲上方 */
+    bottom: 110px;
     left: 0;
     width: 100%;
 }
 
-/* 空模式下 ECG 的特殊調整 */
 .empty-mode .ecg-container {
     margin-bottom: 0px;
 }
 
-/* 為了防止視窗大小變化時布局崩潰的媒體查詢 */
 @media (max-height: 500px) {
     .list-frame {
         min-height: 150px;
@@ -339,14 +331,10 @@ header {
     .song-text {
         font-size: 24px;
     }
-
-    /* 小屏幕上調整空狀態下的現正演唱歌曲位置 - 情況E */
     .empty-mode .current-song {
-        margin-top: -30px; /* 在小屏幕上稍微減少上移距離 */
+        margin-top: -30px;
     }
 }
-
-/* 定義淡入動畫 */
 @keyframes fadeIn {
     from { opacity: 0.5; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
