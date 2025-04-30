@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 配置參數 - 專注於平滑滾動
     const SCROLL_CONFIG = {
-        scrollSpeed: 0.5,         // 減慢滾動速度（關鍵：值越小，滾動越平滑）
-        scrollPauseTime: 2000,    // 頂部和底部暫停時間（毫秒）
-        scrollInterval: 16,       // 每幀滾動間隔（設為 16ms 大約是 60fps）
+        scrollSpeed: 1,         // 減慢滾動速度（關鍵：值越小，滾動越平滑）
+        scrollPauseTime: 1500,    // 頂部和底部暫停時間（毫秒）
+        scrollInterval: 5,       // 每幀滾動間隔（設為 16ms 大約是 60fps）
         useRAF: true,             // 使用 requestAnimationFrame 而不是 setInterval
         easing: true,             // 使用緩動函數讓滾動更自然
-        extraSpace: 50            // 額外緩衝空間
+        extraSpace: 40            // 額外緩衝空間
     };
     
     // 滾動狀態
